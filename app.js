@@ -35,7 +35,7 @@ function clickSquare(square){
   if(!selected){selectSquare(square);return}
   if(square===selected){clearSelection();return}
   const targetPiece=game.get(square.dataset.square);
-  if(targetPiece?.color===solverColor){selectSquare(square);return}
+  if(targetPiece?.color===solverColor){clearSelection();return}
   const from=selected.dataset.square;
   const legalMove=game.moves({square:from,verbose:true}).find(move=>move.to===square.dataset.square);
   if(!legalMove){clearSelection();return}
