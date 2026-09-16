@@ -30,7 +30,24 @@ function updateCoordinates(){const files=filesForBoard(),ranks=ranksForBoard();d
 function renderBoard(){const board=$('board'),files=filesForBoard(),ranks=ranksForBoard();board.replaceChildren();for(const rank of ranks)for(const file of files){const squareName=file+rank,square=document.createElement('div'),piece=game.get(squareName);square.className='square '+(((file.charCodeAt(0)-97+Number(rank))%2)?'light':'dark');square.dataset.square=squareName;if(piece){const img=document.createElement('img');img.className='piece-image';img.alt=(piece.color==='w'?'White ':'Black ')+piece.type;img.src='https://lichess1.org/assets/piece/cburnett/'+piece.color+piece.type.toUpperCase()+'.svg';img.onerror=()=>{img.style.display='none';square.textContent={wp:'♙',wn:'♘',wb:'♗',wr:'♖',wq:'♕',wk:'♔',bp:'♟',bn:'♞',bb:'♝',br:'♜',bq:'♛',bk:'♚'}[piece.color+piece.type]};square.append(img)}square.addEventListener('click',()=>clickSquare(square));board.append(square)}updateCoordinates()}
 function clearSelection(){document.querySelectorAll('.selected,.legal,.capture').forEach(el=>el.classList.remove('selected','legal','capture'));selected=null}
 function selectSquare(square){clearSelection();if(answered||game.turn()!==solverColor)return;const piece=game.get(square.dataset.square);if(!piece||piece.color!==solverColor)return;selected=square;square.classList.add('selected');game.moves({square:square.dataset.square,verbose:true}).forEach(move=>{const target=document.querySelector('[data-square="'+move.to+'"]');if(target)target.classList.add(move.captured?'capture':'legal')})}
-function clickSquare(square){if(answered)return;if(!selected){selectSquare(square);return}if(square===selected){clearSelection();return}const uci=selected.dataset.square+square.dataset.square,expected=current.solution[solutionIndex];clearSelection();if(uci!==expected){selectSquare(square);showFeedback(false,'That is not the puzzle move. Try again.');return}if(!uciMove(game,uci)){showFeedback(false,'That move is not legal in this position.');return}solutionIndex++;renderBoard();if(solutionIndex>=current.solution.length){finishPuzzle();return}showFeedback(true,'Correct. Follow the line.');setTimeout(playOpponentReply,420)}
+function clickSquare(square){
+  if(answered)return;
+  if(!selected){selectSquare(square);return}
+  if(square===selected){clearSelection();return}
+  const targetPiece=game.get(square.dataset.square);
+  if(targetPiece?.color===solverColor){selectSquare(square);return}
+  const from=selected.dataset.square;
+  const legalMove=game.moves({square:from,verbose:true}).find(move=>move.to===square.dataset.square);
+  if(!legalMove){clearSelection();return}
+  const uci=from+square.dataset.square+(legalMove.promotion||'');
+  const expected=current.solution[solutionIndex];
+  clearSelection();
+  if(uci!==expected){showFeedback(false,'That is not the puzzle move. Try again.');return}
+  if(!uciMove(game,uci)){return}
+  solutionIndex++;renderBoard();
+  if(solutionIndex>=current.solution.length){finishPuzzle();return}
+  showFeedback(true,'Correct. Follow the line.');setTimeout(playOpponentReply,420)
+}
 function playOpponentReply(){if(answered||solutionIndex>=current.solution.length)return;const reply=current.solution[solutionIndex];if(!uciMove(game,reply)){showFeedback(false,'This puzzle line could not be loaded.');answered=true;return}solutionIndex++;renderBoard();if(solutionIndex>=current.solution.length)finishPuzzle();else showFeedback(true,'Opponent replied. Find the next move.')}
 function finishPuzzle(){answered=true;state.solved++;state.correct++;state.rating+=12;save();showFeedback(true,'Puzzle complete.')}
 function solutionSan(){const chess=new Chess(current.fen),moves=[];for(const uci of current.solution){const move=uciMove(chess,uci);if(!move)break;moves.push(move.san)}return moves.join(' ')||'No line available'}
