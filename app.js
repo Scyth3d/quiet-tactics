@@ -32,13 +32,13 @@ function clearSelection(){document.querySelectorAll('.selected,.legal,.capture')
 function selectSquare(square){clearSelection();if(answered||game.turn()!==solverColor)return;const piece=game.get(square.dataset.square);if(!piece||piece.color!==solverColor)return;selected=square;square.classList.add('selected');game.moves({square:square.dataset.square,verbose:true}).forEach(move=>{const target=document.querySelector('[data-square="'+move.to+'"]');if(target)target.classList.add(move.captured?'capture':'legal')})}
 function clickSquare(square){
   if(answered)return;
-  if(!selected){selectSquare(square);return}
-  if(square===selected){clearSelection();return}
+  if(!selected){hideFeedback();selectSquare(square);return}
+  if(square===selected){clearSelection();hideFeedback();return}
   const targetPiece=game.get(square.dataset.square);
-  if(targetPiece?.color===solverColor){clearSelection();return}
+  if(targetPiece?.color===solverColor){clearSelection();hideFeedback();return}
   const from=selected.dataset.square;
   const legalMove=game.moves({square:from,verbose:true}).find(move=>move.to===square.dataset.square);
-  if(!legalMove){clearSelection();return}
+  if(!legalMove){clearSelection();hideFeedback();return}
   const uci=from+square.dataset.square+(legalMove.promotion||'');
   const expected=current.solution[solutionIndex];
   clearSelection();
