@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1117" />
+  <title>Quiet Tactics — Chess training</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">♞</span><span>quiet<span class="accent">tactics</span></span></a>
+    <nav><a class="active" href="#train">Train</a><a href="#stats">Your stats</a><a href="#about">About</a></nav>
+    <button id="resetBtn" class="ghost-button" title="Reset your rating and stats">Reset progress</button>
+  </header>
+
+  <main id="train" class="layout">
+    <section class="training-column">
+      <div class="eyebrow"><span class="live-dot"></span> DAILY TRAINING <span id="streakLabel">· 0 day streak</span></div>
+      <div class="heading-row"><div><h1>Find the best move.</h1><p class="subheading">Not every position has a tactic. Trust your chess.</p></div><button id="newPuzzleBtn" class="outline-button">↻ New position</button></div>
+      <div class="board-wrap">
+        <div class="board-coordinate-layout">
+          <div class="rank-labels" aria-hidden="true"><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
+          <div id="board" class="board" aria-label="Chess board"></div>
+          <div class="file-labels" aria-hidden="true"><span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span></div>
+        </div>
+        <div class="board-footer"><span id="positionType">TACTICAL POSITION</span><span id="moveCount">Position 1 of 6</span></div>
+      </div>
+      <div id="feedback" class="feedback hidden"><div id="feedbackIcon" class="feedback-icon">✓</div><div><strong id="feedbackTitle">Correct</strong><p id="feedbackText"></p></div></div>
+      <div class="controls"><button id="noTacticBtn" class="secondary-button no-tactic-button">◎ No tactic</button><button id="showBtn" class="secondary-button">Show solution <span>Space</span></button><button id="nextPuzzleBtn" class="secondary-button">Next puzzle <span>→</span></button></div>
+      <p class="hint">Click a piece, then click its destination. <kbd>Space</kbd> reveals the line.</p>
+    </section>
+
+    <aside class="sidebar">
+      <div class="rating-card"><div class="card-kicker">YOUR RATING</div><div class="rating-line"><span id="rating">1200</span><span class="rating-change" id="ratingChange">+0</span></div><div class="rating-meter"><i id="ratingMeter"></i></div><div class="rating-meta"><span id="solvedLabel">0 solved</span><span id="accuracyLabel">— accuracy</span></div></div>
+      <div class="mix-card"><div class="card-title">Position mix</div><p>Choose how often the position has a tactic.</p><div class="mix-row"><span>Tactical</span><strong id="mixValue">70%</strong></div><input id="mixSlider" type="range" min="0" max="100" value="70" /><div class="mix-caption"><span>More quiet positions</span><span>More tactics</span></div></div>
+      <div class="session-card"><div class="card-title">This session</div><div class="session-stat"><span class="stat-icon blue">◎</span><div><strong id="sessionSolved">0</strong><small>positions solved</small></div></div><div class="session-stat"><span class="stat-icon gold">◒</span><div><strong id="sessionAccuracy">—</strong><small>session accuracy</small></div></div></div>
+      <div class="tip-card"><span>♟</span><div><strong>Quiet positions count</strong><p>Sometimes the best move is a useful improvement. The goal is to recognize what the position is asking for.</p></div></div>
+    </aside>
+  </main>
+  <footer id="about"><span>quiettactics · open source chess training</span><span>Built for thoughtful players.</span></footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
