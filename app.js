@@ -14,7 +14,7 @@ const tacticalThemes=new Set(['advantage','mate','mateIn2','backRankMate','fork'
 const quietThemes=new Set(['quietMove','opening','endgame','pawnEndgame','rookEndgame','bishopEndgame','knightEndgame']);
 const $=id=>document.getElementById(id);
 let state;try{state=JSON.parse(localStorage.getItem('qt'))}catch{}state=state||{rating:1200,solved:0,correct:0,streak:0};
-let puzzles=[],current,game,solverColor='w',solutionIndex=0,selected=null,answered=false,loading=false,lastId='',deck=[],manifest={shards:[]};
+let puzzles=[],current,game,solverColor='w',solutionIndex=0,selected=null,answered=false,loading=false,lastId='',deck=[],manifest={shards:[]},puzzleFailed=false,ratingDelta=0;
 const loadedShards=new Set();let recentIds=[];try{recentIds=JSON.parse(localStorage.getItem('qtRecent'))||[]}catch{}
 
 function uciMove(chess,uci){return chess.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||'q'})}
@@ -42,27 +42,30 @@ function clickSquare(square){
   const uci=from+square.dataset.square+(legalMove.promotion||'');
   const expected=current.solution[solutionIndex];
   clearSelection();
-  if(uci!==expected){showFeedback(false,'That is not the puzzle move. Try again.');return}
+  if(uci!==expected){
+    if(!puzzleFailed){puzzleFailed=true;state.solved++;state.rating=Math.max(400,state.rating-12);ratingDelta=-12;save()}
+    showFeedback(false,'That is not the puzzle move. Rating −12. You can keep trying.');return
+  }
   if(!uciMove(game,uci)){return}
   solutionIndex++;renderBoard();
   if(solutionIndex>=current.solution.length){finishPuzzle();return}
   showFeedback(true,'Correct. Follow the line.');setTimeout(playOpponentReply,420)
 }
 function playOpponentReply(){if(answered||solutionIndex>=current.solution.length)return;const reply=current.solution[solutionIndex];if(!uciMove(game,reply)){showFeedback(false,'This puzzle line could not be loaded.');answered=true;return}solutionIndex++;renderBoard();if(solutionIndex>=current.solution.length)finishPuzzle();else showFeedback(true,'Opponent replied. Find the next move.')}
-function finishPuzzle(){answered=true;state.solved++;state.correct++;state.rating+=12;save();showFeedback(true,'Puzzle complete.')}
+function finishPuzzle(){answered=true;if(!puzzleFailed){state.solved++;state.correct++;state.rating+=12;ratingDelta=12;save();showFeedback(true,'Puzzle complete. Rating +12.')}else showFeedback(true,'Puzzle complete after retry.')}
 function solutionSan(){const chess=new Chess(current.fen),moves=[];for(const uci of current.solution){const move=uciMove(chess,uci);if(!move)break;moves.push(move.san)}return moves.join(' ')||'No line available'}
 function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad');if(!ok)$('feedback').classList.add('bad');$('feedbackIcon').textContent=ok?'✓':'×';$('feedbackTitle').textContent=ok?'Correct':'Not quite';$('feedbackText').textContent=text}
 function hideFeedback(){$('feedback').classList.add('hidden')}
-function updateStats(){const accuracy=state.solved?Math.round(state.correct/state.solved*100):null;$('rating').textContent=state.rating;$('solvedLabel').textContent=state.solved+' solved';$('accuracyLabel').textContent=accuracy===null?'— accuracy':accuracy+'% accuracy';$('sessionSolved').textContent=state.solved;$('sessionAccuracy').textContent=accuracy===null?'—':accuracy+'%';$('ratingMeter').style.width=Math.min(100,Math.max(5,(state.rating-800)/10))+'%'}
+function updateStats(){const accuracy=state.solved?Math.round(state.correct/state.solved*100):null;$('rating').textContent=state.rating;$('ratingChange').textContent=(ratingDelta>0?'+':'')+ratingDelta;$('ratingChange').style.color=ratingDelta<0?'#ec8890':'#63c999';$('solvedLabel').textContent=state.solved+' solved';$('accuracyLabel').textContent=accuracy===null?'— accuracy':accuracy+'% accuracy';$('sessionSolved').textContent=state.solved;$('sessionAccuracy').textContent=accuracy===null?'—':accuracy+'%';$('ratingMeter').style.width=Math.min(100,Math.max(5,(state.rating-800)/10))+'%'}
 function save(){localStorage.setItem('qt',JSON.stringify(state));updateStats()}
-async function loadPuzzle(){if(loading)return;loading=true;$('newPuzzleBtn').textContent='Loading…';const wantQuiet=Math.random()*100>Number($('mixSlider').value);await ensurePool(wantQuiet);current=choosePuzzle(wantQuiet);lastId=current.id;game=new Chess(current.fen);solverColor=game.turn();solutionIndex=0;answered=false;clearSelection();hideFeedback();renderBoard();$('positionType').textContent='INTENDED: '+(isQuiet(current)?'QUIET POSITION':'TACTICAL POSITION');$('moveCount').textContent=(solverColor==='w'?'WHITE':'BLACK')+' TO MOVE · '+current.id;$('newPuzzleBtn').textContent='↻ New position';loading=false}
+async function loadPuzzle(){if(loading)return;loading=true;$('newPuzzleBtn').textContent='Loading…';const wantQuiet=Math.random()*100>Number($('mixSlider').value);await ensurePool(wantQuiet);current=choosePuzzle(wantQuiet);lastId=current.id;game=new Chess(current.fen);solverColor=game.turn();solutionIndex=0;answered=false;puzzleFailed=false;ratingDelta=0;updateStats();clearSelection();hideFeedback();renderBoard();$('positionType').textContent='INTENDED: '+(isQuiet(current)?'QUIET POSITION':'TACTICAL POSITION');$('moveCount').textContent=(solverColor==='w'?'WHITE':'BLACK')+' TO MOVE · '+current.id;$('newPuzzleBtn').textContent='↻ New position';loading=false}
 
 puzzles=rawPuzzles.map(prepare).filter(Boolean);
 $('mixSlider').addEventListener('input',event=>$('mixValue').textContent=event.target.value+'%');
 $('newPuzzleBtn').addEventListener('click',loadPuzzle);
 $('nextPuzzleBtn').addEventListener('click',loadPuzzle);
 $('showBtn').addEventListener('click',()=>{answered=true;clearSelection();showFeedback(true,'Solution: '+solutionSan())});
-$('noTacticBtn').addEventListener('click',()=>{if(answered)return;answered=true;clearSelection();state.solved++;if(isQuiet(current)){state.correct++;state.rating+=12;showFeedback(true,'Correct — there is no forcing tactic.')}else{state.rating=Math.max(400,state.rating-12);showFeedback(false,'There is a tactic in this position.')}save()});
+$('noTacticBtn').addEventListener('click',()=>{if(answered)return;answered=true;clearSelection();state.solved++;if(isQuiet(current)){state.correct++;state.rating+=12;ratingDelta=12;showFeedback(true,'Correct — there is no forcing tactic. Rating +12.')}else{state.rating=Math.max(400,state.rating-12);ratingDelta=-12;showFeedback(false,'There is a tactic in this position. Rating −12.')}save()});
 $('resetBtn').addEventListener('click',()=>{if(confirm('Reset your rating and statistics?')){state={rating:1200,solved:0,correct:0,streak:0};save()}});
 document.addEventListener('keydown',event=>{if(event.code==='Space'){event.preventDefault();$('showBtn').click()}if(event.key==='ArrowRight')loadPuzzle()});
 async function initialize(){try{const response=await fetch('data/manifest.json');if(response.ok)manifest=await response.json()}catch{}updateStats();loadPuzzle()}
