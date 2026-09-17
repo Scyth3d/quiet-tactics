@@ -15,7 +15,7 @@ const quietThemes=new Set(['quietMove','opening','endgame','pawnEndgame','rookEn
 const $=id=>document.getElementById(id);
 let state;try{state=JSON.parse(localStorage.getItem('qt'))}catch{}state=state||{rating:1200,solved:0,correct:0,streak:0};
 let puzzles=[],current,game,solverColor='w',solutionIndex=0,selected=null,answered=false,loading=false,lastId='',deck=[],manifest={shards:[]},puzzleFailed=false,ratingDelta=0,analysisMode=false,evalTimer=null;
-let engine=null,engineReady=null,engineReadyResolve=null,engineReadyReject=null,engineSearching=false,engineQueuedFen=null,engineActiveFen=null,engineBestInfo=null,engineBestMove=null;
+let engine=null,engineReady=null,engineReadyResolve=null,engineReadyReject=null,engineSearching=false,engineQueuedFen=null,engineActiveFen=null,engineBestInfo=null,engineBestMove=null,engineBestLine='';
 let analysisHistory=[],analysisIndex=0;
 const loadedShards=new Set();let recentIds=[];try{recentIds=JSON.parse(localStorage.getItem('qtRecent'))||[]}catch{}
 
@@ -98,15 +98,23 @@ function parseEngineInfo(line){
   const multiplier=engineActiveFen?.split(' ')[1]==='b'?-1:1;
   return score[1]==='mate'?{mate:Number(score[2])*multiplier,depth}:{cp:Number(score[2])*multiplier,depth};
 }
+function engineLineSan(line){
+  const marker=line.indexOf(' pv ');if(marker<0||!engineActiveFen)return '';
+  const chess=new Chess(engineActiveFen),sans=[];
+  for(const uci of line.slice(marker+4).trim().split(/\s+/).slice(0,10)){if(!/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(uci))break;const move=uciMove(chess,uci);if(!move)break;sans.push(move.san)}
+  return sans.join(' ');
+}
 function showEngineResult(){
   if(!analysisMode||!engineBestInfo||game.fen()!==engineActiveFen)return;
   $('engineEval').textContent=formatEvaluation(engineBestInfo)+' · depth '+engineBestInfo.depth;
+  if(engineBestLine)$('analysisHint').textContent='Best line: '+engineBestLine;
   drawEngineArrow(engineBestMove);
 }
 function beginQueuedEngineSearch(){
   if(!engine||!engineQueuedFen||!analysisMode)return;
-  engineActiveFen=engineQueuedFen;engineQueuedFen=null;engineBestInfo=null;engineBestMove=null;engineSearching=true;clearEngineArrow();
+  engineActiveFen=engineQueuedFen;engineQueuedFen=null;engineBestInfo=null;engineBestMove=null;engineBestLine='';engineSearching=true;clearEngineArrow();
   $('engineEval').textContent='Analyzing locally…';
+  $('analysisHint').textContent='Calculating best line…';
   engine.postMessage('position fen '+engineActiveFen);
   engine.postMessage('go depth 15');
 }
@@ -114,7 +122,7 @@ function handleEngineMessage(event){
   const line=typeof event.data==='string'?event.data:'';
   if(line==='uciok'){engine.postMessage('setoption name Hash value 32');engine.postMessage('isready');return}
   if(line==='readyok'){engineReadyResolve?.();engineReadyResolve=null;return}
-  const info=parseEngineInfo(line);if(info){engineBestInfo=info;engineBestMove=line.match(/\bpv\s+([a-h][1-8][a-h][1-8][qrbn]?)/)?.[1]||engineBestMove;showEngineResult()}
+  const info=parseEngineInfo(line);if(info){engineBestInfo=info;engineBestMove=line.match(/\bpv\s+([a-h][1-8][a-h][1-8][qrbn]?)/)?.[1]||engineBestMove;engineBestLine=engineLineSan(line)||engineBestLine;showEngineResult()}
   if(line.startsWith('bestmove')){engineBestMove=line.match(/^bestmove\s+([a-h][1-8][a-h][1-8][qrbn]?)/)?.[1]||null;engineSearching=false;if(engineQueuedFen)beginQueuedEngineSearch();else showEngineResult()}
 }
 function initializeEngine(){
@@ -136,7 +144,7 @@ async function updateEngineEvaluation(){
   engineQueuedFen=game.fen();
   if(engineSearching)engine.postMessage('stop');else beginQueuedEngineSearch();
 }
-function stopEngineEvaluation(){clearTimeout(evalTimer);engineQueuedFen=null;engineBestInfo=null;engineBestMove=null;clearEngineArrow();if(engineSearching&&engine)engine.postMessage('stop')}
+function stopEngineEvaluation(){clearTimeout(evalTimer);engineQueuedFen=null;engineBestInfo=null;engineBestMove=null;engineBestLine='';clearEngineArrow();if(engineSearching&&engine)engine.postMessage('stop')}
 function scheduleEngineEvaluation(){clearTimeout(evalTimer);evalTimer=setTimeout(updateEngineEvaluation,450)}
 function updateStats(){const accuracy=state.solved?Math.round(state.correct/state.solved*100):null;$('rating').textContent=state.rating;$('ratingChange').textContent=(ratingDelta>0?'+':'')+ratingDelta;$('ratingChange').style.color=ratingDelta<0?'#ec8890':'#63c999';$('solvedLabel').textContent=state.solved+' solved';$('accuracyLabel').textContent=accuracy===null?'— accuracy':accuracy+'% accuracy';$('sessionSolved').textContent=state.solved;$('sessionAccuracy').textContent=accuracy===null?'—':accuracy+'%';$('ratingMeter').style.width=Math.min(100,Math.max(5,(state.rating-800)/10))+'%'}
 function save(){localStorage.setItem('qt',JSON.stringify(state));updateStats()}
