@@ -14,7 +14,8 @@ const tacticalThemes=new Set(['advantage','mate','mateIn2','backRankMate','fork'
 const quietThemes=new Set(['quietMove','opening','endgame','pawnEndgame','rookEndgame','bishopEndgame','knightEndgame']);
 const $=id=>document.getElementById(id);
 let state;try{state=JSON.parse(localStorage.getItem('qt'))}catch{}state=state||{rating:1200,solved:0,correct:0,streak:0};
-let puzzles=[],current,game,solverColor='w',solutionIndex=0,selected=null,answered=false,loading=false,lastId='',deck=[],manifest={shards:[]},puzzleFailed=false,ratingDelta=0,analysisMode=false,evalController=null,evalTimer=null;
+let puzzles=[],current,game,solverColor='w',solutionIndex=0,selected=null,answered=false,loading=false,lastId='',deck=[],manifest={shards:[]},puzzleFailed=false,ratingDelta=0,analysisMode=false,evalTimer=null;
+let engine=null,engineReady=null,engineReadyResolve=null,engineReadyReject=null,engineSearching=false,engineQueuedFen=null,engineActiveFen=null,engineBestInfo=null;
 const loadedShards=new Set();let recentIds=[];try{recentIds=JSON.parse(localStorage.getItem('qtRecent'))||[]}catch{}
 
 function uciMove(chess,uci){return chess.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||'q'})}
@@ -58,13 +59,57 @@ function solutionSan(){const chess=new Chess(current.fen),moves=[];for(const uci
 function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad');if(!ok)$('feedback').classList.add('bad');$('feedbackIcon').textContent=ok?'✓':'×';$('feedbackTitle').textContent=ok?'Correct':'Not quite';$('feedbackText').textContent=text}
 function hideFeedback(){$('feedback').classList.add('hidden')}
 function enterAnalysisMode(){analysisMode=true;$('analysisBar').classList.remove('hidden');$('analysisHint').textContent='Play legal moves for either side to explore the position.';updateEngineEvaluation()}
-function formatEvaluation(pv){if(Number.isFinite(pv.mate))return(pv.mate>0?'White mates in ':'Black mates in ')+Math.abs(pv.mate);const value=pv.cp/100;return(value>0?'+':'')+value.toFixed(2)+' (White POV)'}
-async function updateEngineEvaluation(){if(evalController)evalController.abort();evalController=new AbortController();$('engineEval').textContent='Loading…';const timer=setTimeout(()=>evalController.abort(),6000);try{const response=await fetch('https://lichess.org/api/cloud-eval?multiPv=1&fen='+encodeURIComponent(game.fen()),{signal:evalController.signal});if(!response.ok)throw Error();const data=await response.json(),pv=data.pvs?.[0];$('engineEval').textContent=pv?formatEvaluation(pv)+' · depth '+data.depth:'Unavailable'}catch{$('engineEval').textContent='No cloud evaluation available'}finally{clearTimeout(timer)}}
-function scheduleEngineEvaluation(){clearTimeout(evalTimer);evalTimer=setTimeout(updateEngineEvaluation,900)}
+function formatEvaluation(info){if(Number.isFinite(info.mate))return(info.mate>0?'White mates in ':'Black mates in ')+Math.abs(info.mate);const value=info.cp/100;return(value>0?'+':'')+value.toFixed(2)+' (White POV)'}
+function parseEngineInfo(line){
+  if(!line.startsWith('info ')||!line.includes(' score '))return null;
+  const depth=Number(line.match(/\bdepth (\d+)/)?.[1]||0),score=line.match(/\bscore (cp|mate) (-?\d+)/);
+  if(!score)return null;
+  const multiplier=engineActiveFen?.split(' ')[1]==='b'?-1:1;
+  return score[1]==='mate'?{mate:Number(score[2])*multiplier,depth}:{cp:Number(score[2])*multiplier,depth};
+}
+function showEngineResult(){
+  if(!analysisMode||!engineBestInfo||game.fen()!==engineActiveFen)return;
+  $('engineEval').textContent=formatEvaluation(engineBestInfo)+' · depth '+engineBestInfo.depth;
+}
+function beginQueuedEngineSearch(){
+  if(!engine||!engineQueuedFen||!analysisMode)return;
+  engineActiveFen=engineQueuedFen;engineQueuedFen=null;engineBestInfo=null;engineSearching=true;
+  $('engineEval').textContent='Analyzing locally…';
+  engine.postMessage('position fen '+engineActiveFen);
+  engine.postMessage('go depth 15');
+}
+function handleEngineMessage(event){
+  const line=typeof event.data==='string'?event.data:'';
+  if(line==='uciok'){engine.postMessage('setoption name Hash value 32');engine.postMessage('isready');return}
+  if(line==='readyok'){engineReadyResolve?.();engineReadyResolve=null;return}
+  const info=parseEngineInfo(line);if(info)engineBestInfo=info;
+  if(line.startsWith('bestmove')){engineSearching=false;if(engineQueuedFen)beginQueuedEngineSearch();else showEngineResult()}
+}
+function initializeEngine(){
+  if(engineReady)return engineReady;
+  $('engineEval').textContent='Loading local engine…';
+  engineReady=new Promise((resolve,reject)=>{engineReadyResolve=resolve;engineReadyReject=reject});
+  try{
+    engine=new Worker('assets/stockfish/stockfish-19-lite-single.js');
+    engine.onmessage=handleEngineMessage;
+    engine.onerror=()=>{engineReadyReject?.(new Error('Stockfish failed to load'));engineReadyReject=null;$('engineEval').textContent='Local engine unavailable'};
+    engine.postMessage('uci');
+  }catch(error){engineReadyReject?.(error);engineReadyReject=null;$('engineEval').textContent='Local engine unavailable'}
+  return engineReady;
+}
+async function updateEngineEvaluation(){
+  if(!analysisMode)return;
+  try{await initializeEngine()}catch{return}
+  if(!analysisMode)return;
+  engineQueuedFen=game.fen();
+  if(engineSearching)engine.postMessage('stop');else beginQueuedEngineSearch();
+}
+function stopEngineEvaluation(){clearTimeout(evalTimer);engineQueuedFen=null;engineBestInfo=null;if(engineSearching&&engine)engine.postMessage('stop')}
+function scheduleEngineEvaluation(){clearTimeout(evalTimer);evalTimer=setTimeout(updateEngineEvaluation,450)}
 function updateStats(){const accuracy=state.solved?Math.round(state.correct/state.solved*100):null;$('rating').textContent=state.rating;$('ratingChange').textContent=(ratingDelta>0?'+':'')+ratingDelta;$('ratingChange').style.color=ratingDelta<0?'#ec8890':'#63c999';$('solvedLabel').textContent=state.solved+' solved';$('accuracyLabel').textContent=accuracy===null?'— accuracy':accuracy+'% accuracy';$('sessionSolved').textContent=state.solved;$('sessionAccuracy').textContent=accuracy===null?'—':accuracy+'%';$('ratingMeter').style.width=Math.min(100,Math.max(5,(state.rating-800)/10))+'%'}
 function save(){localStorage.setItem('qt',JSON.stringify(state));updateStats()}
 function resetProgress(){if(!confirm('Reset your rating to 1200 and clear all statistics?'))return;state={rating:1200,solved:0,correct:0,streak:0};ratingDelta=0;localStorage.removeItem('qtRecent');recentIds=[];save();hideFeedback()}
-async function loadPuzzle(){if(loading)return;loading=true;$('newPuzzleBtn').textContent='Loading…';const wantQuiet=Math.random()*100>Number($('mixSlider').value);await ensurePool(wantQuiet);current=choosePuzzle(wantQuiet);lastId=current.id;game=new Chess(current.fen);solverColor=game.turn();solutionIndex=0;answered=false;analysisMode=false;puzzleFailed=false;ratingDelta=0;if(evalController)evalController.abort();clearTimeout(evalTimer);$('analysisBar').classList.add('hidden');updateStats();clearSelection();hideFeedback();renderBoard();$('positionType').textContent='INTENDED: '+(isQuiet(current)?'QUIET POSITION':'TACTICAL POSITION');$('moveCount').textContent=(solverColor==='w'?'WHITE':'BLACK')+' TO MOVE · '+current.id;$('newPuzzleBtn').textContent='↻ New position';loading=false}
+async function loadPuzzle(){if(loading)return;loading=true;$('newPuzzleBtn').textContent='Loading…';const wantQuiet=Math.random()*100>Number($('mixSlider').value);await ensurePool(wantQuiet);current=choosePuzzle(wantQuiet);lastId=current.id;game=new Chess(current.fen);solverColor=game.turn();solutionIndex=0;answered=false;analysisMode=false;puzzleFailed=false;ratingDelta=0;stopEngineEvaluation();$('analysisBar').classList.add('hidden');updateStats();clearSelection();hideFeedback();renderBoard();$('positionType').textContent='INTENDED: '+(isQuiet(current)?'QUIET POSITION':'TACTICAL POSITION');$('moveCount').textContent=(solverColor==='w'?'WHITE':'BLACK')+' TO MOVE · '+current.id;$('newPuzzleBtn').textContent='↻ New position';loading=false}
 
 puzzles=rawPuzzles.map(prepare).filter(Boolean);
 $('mixSlider').addEventListener('input',event=>$('mixValue').textContent=event.target.value+'%');
