@@ -27,6 +27,7 @@
         <div class="board-footer"><span id="positionType">TACTICAL POSITION</span><span id="moveCount">Position 1 of 6</span></div>
       </div>
       <div id="feedback" class="feedback hidden"><div id="feedbackIcon" class="feedback-icon">✓</div><div><strong id="feedbackTitle">Correct</strong><p id="feedbackText"></p></div></div>
+      <div id="analysisBar" class="analysis-bar hidden"><div><span>ENGINE EVALUATION</span><strong id="engineEval">Loading…</strong></div><p id="analysisHint">Play legal moves for either side to explore the position.</p></div>
       <div class="controls"><button id="noTacticBtn" class="secondary-button no-tactic-button">◎ No tactic</button><button id="showBtn" class="secondary-button">Show solution <span>Space</span></button><button id="nextPuzzleBtn" class="secondary-button">Next puzzle <span>→</span></button></div>
       <p class="hint">Click a piece, then click its destination. <kbd>Space</kbd> reveals the line.</p>
     </section>
@@ -40,6 +41,6 @@
   </main>
   <footer id="about"><span>quiettactics · open source chess training</span><span>Built for thoughtful players.</span></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
