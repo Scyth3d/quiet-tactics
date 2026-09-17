@@ -58,6 +58,7 @@ function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad');if
 function hideFeedback(){$('feedback').classList.add('hidden')}
 function updateStats(){const accuracy=state.solved?Math.round(state.correct/state.solved*100):null;$('rating').textContent=state.rating;$('ratingChange').textContent=(ratingDelta>0?'+':'')+ratingDelta;$('ratingChange').style.color=ratingDelta<0?'#ec8890':'#63c999';$('solvedLabel').textContent=state.solved+' solved';$('accuracyLabel').textContent=accuracy===null?'— accuracy':accuracy+'% accuracy';$('sessionSolved').textContent=state.solved;$('sessionAccuracy').textContent=accuracy===null?'—':accuracy+'%';$('ratingMeter').style.width=Math.min(100,Math.max(5,(state.rating-800)/10))+'%'}
 function save(){localStorage.setItem('qt',JSON.stringify(state));updateStats()}
+function resetProgress(){if(!confirm('Reset your rating to 1200 and clear all statistics?'))return;state={rating:1200,solved:0,correct:0,streak:0};ratingDelta=0;localStorage.removeItem('qtRecent');recentIds=[];save();hideFeedback()}
 async function loadPuzzle(){if(loading)return;loading=true;$('newPuzzleBtn').textContent='Loading…';const wantQuiet=Math.random()*100>Number($('mixSlider').value);await ensurePool(wantQuiet);current=choosePuzzle(wantQuiet);lastId=current.id;game=new Chess(current.fen);solverColor=game.turn();solutionIndex=0;answered=false;puzzleFailed=false;ratingDelta=0;updateStats();clearSelection();hideFeedback();renderBoard();$('positionType').textContent='INTENDED: '+(isQuiet(current)?'QUIET POSITION':'TACTICAL POSITION');$('moveCount').textContent=(solverColor==='w'?'WHITE':'BLACK')+' TO MOVE · '+current.id;$('newPuzzleBtn').textContent='↻ New position';loading=false}
 
 puzzles=rawPuzzles.map(prepare).filter(Boolean);
@@ -66,7 +67,8 @@ $('newPuzzleBtn').addEventListener('click',loadPuzzle);
 $('nextPuzzleBtn').addEventListener('click',loadPuzzle);
 $('showBtn').addEventListener('click',()=>{answered=true;clearSelection();showFeedback(true,'Solution: '+solutionSan())});
 $('noTacticBtn').addEventListener('click',()=>{if(answered)return;answered=true;clearSelection();state.solved++;if(isQuiet(current)){state.correct++;state.rating+=12;ratingDelta=12;showFeedback(true,'Correct — there is no forcing tactic. Rating +12.')}else{state.rating=Math.max(400,state.rating-12);ratingDelta=-12;showFeedback(false,'There is a tactic in this position. Rating −12.')}save()});
-$('resetBtn').addEventListener('click',()=>{if(confirm('Reset your rating and statistics?')){state={rating:1200,solved:0,correct:0,streak:0};save()}});
+$('resetBtn').addEventListener('click',resetProgress);
+$('resetRatingBtn').addEventListener('click',resetProgress);
 document.addEventListener('keydown',event=>{if(event.code==='Space'){event.preventDefault();$('showBtn').click()}if(event.key==='ArrowRight')loadPuzzle()});
 async function initialize(){try{const response=await fetch('data/manifest.json');if(response.ok)manifest=await response.json()}catch{}updateStats();loadPuzzle()}
 initialize();

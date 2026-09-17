@@ -32,7 +32,7 @@
     </section>
 
     <aside class="sidebar">
-      <div class="rating-card"><div class="card-kicker">YOUR RATING</div><div class="rating-line"><span id="rating">1200</span><span class="rating-change" id="ratingChange">+0</span></div><div class="rating-meter"><i id="ratingMeter"></i></div><div class="rating-meta"><span id="solvedLabel">0 solved</span><span id="accuracyLabel">— accuracy</span></div></div>
+      <div class="rating-card"><div class="card-kicker">YOUR RATING</div><div class="rating-line"><span id="rating">1200</span><span class="rating-change" id="ratingChange">+0</span></div><div class="rating-meter"><i id="ratingMeter"></i></div><div class="rating-meta"><span id="solvedLabel">0 solved</span><span id="accuracyLabel">— accuracy</span></div><button id="resetRatingBtn" class="reset-rating-button">Reset rating to 1200</button></div>
       <div class="mix-card"><div class="card-title">Position mix</div><p>Choose how often the position has a tactic.</p><div class="mix-row"><span>Tactical</span><strong id="mixValue">70%</strong></div><input id="mixSlider" type="range" min="0" max="100" value="70" /><div class="mix-caption"><span>More quiet positions</span><span>More tactics</span></div></div>
       <div class="session-card"><div class="card-title">This session</div><div class="session-stat"><span class="stat-icon blue">◎</span><div><strong id="sessionSolved">0</strong><small>positions solved</small></div></div><div class="session-stat"><span class="stat-icon gold">◒</span><div><strong id="sessionAccuracy">—</strong><small>session accuracy</small></div></div></div>
       <div class="tip-card"><span>♟</span><div><strong>Quiet positions count</strong><p>Sometimes the best move is a useful improvement. The goal is to recognize what the position is asking for.</p></div></div>
@@ -40,6 +40,6 @@
   </main>
   <footer id="about"><span>quiettactics · open source chess training</span><span>Built for thoughtful players.</span></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
