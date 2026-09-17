@@ -61,7 +61,12 @@ function clickSquare(square){
 }
 function playOpponentReply(){if(answered||solutionIndex>=current.solution.length)return;const reply=current.solution[solutionIndex];if(!uciMove(game,reply)){showFeedback(false,'This puzzle line could not be loaded.');answered=true;return}solutionIndex++;renderBoard();if(solutionIndex>=current.solution.length)finishPuzzle();else showFeedback(true,'Opponent replied. Find the next move.')}
 function finishPuzzle(){answered=true;if(!puzzleFailed){state.solved++;state.correct++;state.rating+=12;ratingDelta=12;save();showFeedback(true,'Puzzle complete. Rating +12.')}else showFeedback(true,'Puzzle complete after retry.');enterAnalysisMode()}
-function solutionSan(){const chess=new Chess(current.fen),moves=[];for(const uci of current.solution){const move=uciMove(chess,uci);if(!move)break;moves.push(move.san)}return moves.join(' ')||'No line available'}
+function revealSolution(){
+  if(analysisMode)return;
+  const solvedGame=new Chess(current.fen),moves=[];
+  for(const uci of current.solution){const move=uciMove(solvedGame,uci);if(!move)break;moves.push(move.san)}
+  answered=true;clearSelection();game=solvedGame;renderBoard();showFeedback(true,'Solution: '+(moves.join(' ')||'No line available'));enterAnalysisMode();
+}
 function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad');if(!ok)$('feedback').classList.add('bad');$('feedbackIcon').textContent=ok?'✓':'×';$('feedbackTitle').textContent=ok?'Correct':'Not quite';$('feedbackText').textContent=text}
 function hideFeedback(){$('feedback').classList.add('hidden')}
 function enterAnalysisMode(){analysisMode=true;analysisHistory=[{fen:game.fen(),san:'Solved position'}];analysisIndex=0;$('analysisBar').classList.remove('hidden');$('analysisHint').textContent='Play either side, then use ← and → to review.';updateAnalysisNavigation();updateEngineEvaluation()}
@@ -140,7 +145,7 @@ puzzles=rawPuzzles.map(prepare).filter(Boolean);
 $('mixSlider').addEventListener('input',event=>$('mixValue').textContent=event.target.value+'%');
 $('newPuzzleBtn').addEventListener('click',loadPuzzle);
 $('nextPuzzleBtn').addEventListener('click',loadPuzzle);
-$('showBtn').addEventListener('click',()=>{answered=true;clearSelection();showFeedback(true,'Solution: '+solutionSan())});
+$('showBtn').addEventListener('click',revealSolution);
 $('noTacticBtn').addEventListener('click',()=>{if(answered)return;answered=true;clearSelection();state.solved++;if(isQuiet(current)){state.correct++;state.rating+=12;ratingDelta=12;showFeedback(true,'Correct — there is no forcing tactic. Rating +12.');enterAnalysisMode()}else{state.rating=Math.max(400,state.rating-12);ratingDelta=-12;showFeedback(false,'There is a tactic in this position. Rating −12.')}save()});
 $('resetBtn').addEventListener('click',resetProgress);
 $('resetRatingBtn').addEventListener('click',resetProgress);
