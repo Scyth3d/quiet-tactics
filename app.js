@@ -15,7 +15,8 @@ const quietThemes=new Set(['quietMove','opening','endgame','pawnEndgame','rookEn
 const $=id=>document.getElementById(id);
 let state;try{state=JSON.parse(localStorage.getItem('qt'))}catch{}state=state||{rating:1200,solved:0,correct:0,streak:0};
 let puzzles=[],current,game,solverColor='w',solutionIndex=0,selected=null,answered=false,loading=false,lastId='',deck=[],manifest={shards:[]},puzzleFailed=false,ratingDelta=0,analysisMode=false,evalTimer=null;
-let engine=null,engineReady=null,engineReadyResolve=null,engineReadyReject=null,engineSearching=false,engineQueuedFen=null,engineActiveFen=null,engineBestInfo=null;
+let engine=null,engineReady=null,engineReadyResolve=null,engineReadyReject=null,engineSearching=false,engineQueuedFen=null,engineActiveFen=null,engineBestInfo=null,engineBestMove=null;
+let analysisHistory=[],analysisIndex=0;
 const loadedShards=new Set();let recentIds=[];try{recentIds=JSON.parse(localStorage.getItem('qtRecent'))||[]}catch{}
 
 function uciMove(chess,uci){return chess.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||'q'})}
@@ -41,7 +42,12 @@ function clickSquare(square){
   const legalMove=game.moves({square:from,verbose:true}).find(move=>move.to===square.dataset.square);
   if(!legalMove){clearSelection();hideFeedback();return}
   const uci=from+square.dataset.square+(legalMove.promotion||'');
-  if(analysisMode){clearSelection();if(uciMove(game,uci)){renderBoard();scheduleEngineEvaluation()}return}
+  if(analysisMode){
+    clearSelection();const move=uciMove(game,uci);if(!move)return;
+    analysisHistory=analysisHistory.slice(0,analysisIndex+1);
+    analysisHistory.push({fen:game.fen(),san:move.san});analysisIndex=analysisHistory.length-1;
+    renderBoard();updateAnalysisNavigation();scheduleEngineEvaluation();return
+  }
   const expected=current.solution[solutionIndex];
   clearSelection();
   if(uci!==expected){
@@ -58,8 +64,26 @@ function finishPuzzle(){answered=true;if(!puzzleFailed){state.solved++;state.cor
 function solutionSan(){const chess=new Chess(current.fen),moves=[];for(const uci of current.solution){const move=uciMove(chess,uci);if(!move)break;moves.push(move.san)}return moves.join(' ')||'No line available'}
 function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad');if(!ok)$('feedback').classList.add('bad');$('feedbackIcon').textContent=ok?'✓':'×';$('feedbackTitle').textContent=ok?'Correct':'Not quite';$('feedbackText').textContent=text}
 function hideFeedback(){$('feedback').classList.add('hidden')}
-function enterAnalysisMode(){analysisMode=true;$('analysisBar').classList.remove('hidden');$('analysisHint').textContent='Play legal moves for either side to explore the position.';updateEngineEvaluation()}
+function enterAnalysisMode(){analysisMode=true;analysisHistory=[{fen:game.fen(),san:'Solved position'}];analysisIndex=0;$('analysisBar').classList.remove('hidden');$('analysisHint').textContent='Play either side, then use ← and → to review.';updateAnalysisNavigation();updateEngineEvaluation()}
 function formatEvaluation(info){if(Number.isFinite(info.mate))return(info.mate>0?'White mates in ':'Black mates in ')+Math.abs(info.mate);const value=info.cp/100;return(value>0?'+':'')+value.toFixed(2)+' (White POV)'}
+function clearEngineArrow(){document.getElementById('engineArrow')?.remove()}
+function drawEngineArrow(move){
+  clearEngineArrow();if(!move||move.length<4)return;
+  const files=filesForBoard(),ranks=ranksForBoard(),from=move.slice(0,2),to=move.slice(2,4);
+  const x1=files.indexOf(from[0])+.5,y1=ranks.indexOf(from[1])+.5,x2=files.indexOf(to[0])+.5,y2=ranks.indexOf(to[1])+.5;
+  if([x1,y1,x2,y2].some(value=>value<0))return;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.id='engineArrow';svg.classList.add('engine-arrow-layer');svg.setAttribute('viewBox','0 0 8 8');
+  svg.innerHTML='<defs><marker id="engineArrowHead" markerWidth="4" markerHeight="4" refX="2.7" refY="2" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L4,2 L0,4 Z" fill="#f6c453"/></marker></defs><line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" marker-end="url(#engineArrowHead)"/>';
+  $('board').append(svg);
+}
+function updateAnalysisNavigation(){
+  const last=Math.max(0,analysisHistory.length-1),moveLabel=analysisIndex?' · '+analysisHistory[analysisIndex].san:'';$('analysisPly').textContent=analysisIndex+' / '+last+moveLabel;
+  $('analysisBack').disabled=!analysisMode||analysisIndex===0;$('analysisForward').disabled=!analysisMode||analysisIndex>=last;
+}
+function navigateAnalysis(direction){
+  if(!analysisMode)return;const next=analysisIndex+direction;if(next<0||next>=analysisHistory.length)return;
+  analysisIndex=next;game=new Chess(analysisHistory[analysisIndex].fen);clearSelection();renderBoard();updateAnalysisNavigation();scheduleEngineEvaluation();
+}
 function parseEngineInfo(line){
   if(!line.startsWith('info ')||!line.includes(' score '))return null;
   const depth=Number(line.match(/\bdepth (\d+)/)?.[1]||0),score=line.match(/\bscore (cp|mate) (-?\d+)/);
@@ -70,10 +94,11 @@ function parseEngineInfo(line){
 function showEngineResult(){
   if(!analysisMode||!engineBestInfo||game.fen()!==engineActiveFen)return;
   $('engineEval').textContent=formatEvaluation(engineBestInfo)+' · depth '+engineBestInfo.depth;
+  drawEngineArrow(engineBestMove);
 }
 function beginQueuedEngineSearch(){
   if(!engine||!engineQueuedFen||!analysisMode)return;
-  engineActiveFen=engineQueuedFen;engineQueuedFen=null;engineBestInfo=null;engineSearching=true;
+  engineActiveFen=engineQueuedFen;engineQueuedFen=null;engineBestInfo=null;engineBestMove=null;engineSearching=true;clearEngineArrow();
   $('engineEval').textContent='Analyzing locally…';
   engine.postMessage('position fen '+engineActiveFen);
   engine.postMessage('go depth 15');
@@ -83,7 +108,7 @@ function handleEngineMessage(event){
   if(line==='uciok'){engine.postMessage('setoption name Hash value 32');engine.postMessage('isready');return}
   if(line==='readyok'){engineReadyResolve?.();engineReadyResolve=null;return}
   const info=parseEngineInfo(line);if(info)engineBestInfo=info;
-  if(line.startsWith('bestmove')){engineSearching=false;if(engineQueuedFen)beginQueuedEngineSearch();else showEngineResult()}
+  if(line.startsWith('bestmove')){engineBestMove=line.match(/^bestmove\s+([a-h][1-8][a-h][1-8][qrbn]?)/)?.[1]||null;engineSearching=false;if(engineQueuedFen)beginQueuedEngineSearch();else showEngineResult()}
 }
 function initializeEngine(){
   if(engineReady)return engineReady;
@@ -104,12 +129,12 @@ async function updateEngineEvaluation(){
   engineQueuedFen=game.fen();
   if(engineSearching)engine.postMessage('stop');else beginQueuedEngineSearch();
 }
-function stopEngineEvaluation(){clearTimeout(evalTimer);engineQueuedFen=null;engineBestInfo=null;if(engineSearching&&engine)engine.postMessage('stop')}
+function stopEngineEvaluation(){clearTimeout(evalTimer);engineQueuedFen=null;engineBestInfo=null;engineBestMove=null;clearEngineArrow();if(engineSearching&&engine)engine.postMessage('stop')}
 function scheduleEngineEvaluation(){clearTimeout(evalTimer);evalTimer=setTimeout(updateEngineEvaluation,450)}
 function updateStats(){const accuracy=state.solved?Math.round(state.correct/state.solved*100):null;$('rating').textContent=state.rating;$('ratingChange').textContent=(ratingDelta>0?'+':'')+ratingDelta;$('ratingChange').style.color=ratingDelta<0?'#ec8890':'#63c999';$('solvedLabel').textContent=state.solved+' solved';$('accuracyLabel').textContent=accuracy===null?'— accuracy':accuracy+'% accuracy';$('sessionSolved').textContent=state.solved;$('sessionAccuracy').textContent=accuracy===null?'—':accuracy+'%';$('ratingMeter').style.width=Math.min(100,Math.max(5,(state.rating-800)/10))+'%'}
 function save(){localStorage.setItem('qt',JSON.stringify(state));updateStats()}
 function resetProgress(){if(!confirm('Reset your rating to 1200 and clear all statistics?'))return;state={rating:1200,solved:0,correct:0,streak:0};ratingDelta=0;localStorage.removeItem('qtRecent');recentIds=[];save();hideFeedback()}
-async function loadPuzzle(){if(loading)return;loading=true;$('newPuzzleBtn').textContent='Loading…';const wantQuiet=Math.random()*100>Number($('mixSlider').value);await ensurePool(wantQuiet);current=choosePuzzle(wantQuiet);lastId=current.id;game=new Chess(current.fen);solverColor=game.turn();solutionIndex=0;answered=false;analysisMode=false;puzzleFailed=false;ratingDelta=0;stopEngineEvaluation();$('analysisBar').classList.add('hidden');updateStats();clearSelection();hideFeedback();renderBoard();$('positionType').textContent='INTENDED: '+(isQuiet(current)?'QUIET POSITION':'TACTICAL POSITION');$('moveCount').textContent=(solverColor==='w'?'WHITE':'BLACK')+' TO MOVE · '+current.id;$('newPuzzleBtn').textContent='↻ New position';loading=false}
+async function loadPuzzle(){if(loading)return;loading=true;$('newPuzzleBtn').textContent='Loading…';const wantQuiet=Math.random()*100>Number($('mixSlider').value);await ensurePool(wantQuiet);current=choosePuzzle(wantQuiet);lastId=current.id;game=new Chess(current.fen);solverColor=game.turn();solutionIndex=0;answered=false;analysisMode=false;analysisHistory=[];analysisIndex=0;puzzleFailed=false;ratingDelta=0;stopEngineEvaluation();$('analysisBar').classList.add('hidden');updateAnalysisNavigation();updateStats();clearSelection();hideFeedback();renderBoard();$('positionType').textContent='INTENDED: '+(isQuiet(current)?'QUIET POSITION':'TACTICAL POSITION');$('moveCount').textContent=(solverColor==='w'?'WHITE':'BLACK')+' TO MOVE · '+current.id;$('newPuzzleBtn').textContent='↻ New position';loading=false}
 
 puzzles=rawPuzzles.map(prepare).filter(Boolean);
 $('mixSlider').addEventListener('input',event=>$('mixValue').textContent=event.target.value+'%');
@@ -119,6 +144,8 @@ $('showBtn').addEventListener('click',()=>{answered=true;clearSelection();showFe
 $('noTacticBtn').addEventListener('click',()=>{if(answered)return;answered=true;clearSelection();state.solved++;if(isQuiet(current)){state.correct++;state.rating+=12;ratingDelta=12;showFeedback(true,'Correct — there is no forcing tactic. Rating +12.');enterAnalysisMode()}else{state.rating=Math.max(400,state.rating-12);ratingDelta=-12;showFeedback(false,'There is a tactic in this position. Rating −12.')}save()});
 $('resetBtn').addEventListener('click',resetProgress);
 $('resetRatingBtn').addEventListener('click',resetProgress);
-document.addEventListener('keydown',event=>{if(event.code==='Space'){event.preventDefault();$('showBtn').click()}if(event.key==='ArrowRight')loadPuzzle()});
+$('analysisBack').addEventListener('click',()=>navigateAnalysis(-1));
+$('analysisForward').addEventListener('click',()=>navigateAnalysis(1));
+document.addEventListener('keydown',event=>{if(event.code==='Space'){event.preventDefault();$('showBtn').click()}if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='n')loadPuzzle();if(analysisMode&&event.key==='ArrowLeft'){event.preventDefault();navigateAnalysis(-1)}if(analysisMode&&event.key==='ArrowRight'){event.preventDefault();navigateAnalysis(1)}});
 async function initialize(){try{const response=await fetch('data/manifest.json');if(response.ok)manifest=await response.json()}catch{}updateStats();loadPuzzle()}
 initialize();
