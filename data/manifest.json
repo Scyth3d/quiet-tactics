@@ -1,5 +1,706 @@
 {
   "version": 1,
-  "total": 0,
-  "shards": []
+  "total": 100000,
+  "shards": [
+    {
+      "path": "data/tactical-001.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3010
+    },
+    {
+      "path": "data/tactical-002.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2924
+    },
+    {
+      "path": "data/tactical-003.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2980
+    },
+    {
+      "path": "data/tactical-004.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 407,
+      "maxRating": 3153
+    },
+    {
+      "path": "data/tactical-005.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2797
+    },
+    {
+      "path": "data/tactical-006.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2860
+    },
+    {
+      "path": "data/tactical-007.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3022
+    },
+    {
+      "path": "data/tactical-008.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2889
+    },
+    {
+      "path": "data/tactical-009.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2865
+    },
+    {
+      "path": "data/tactical-010.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2914
+    },
+    {
+      "path": "data/tactical-011.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2898
+    },
+    {
+      "path": "data/tactical-012.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2920
+    },
+    {
+      "path": "data/tactical-013.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2968
+    },
+    {
+      "path": "data/tactical-014.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2788
+    },
+    {
+      "path": "data/tactical-015.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3039
+    },
+    {
+      "path": "data/tactical-016.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3165
+    },
+    {
+      "path": "data/tactical-017.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2916
+    },
+    {
+      "path": "data/tactical-018.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3028
+    },
+    {
+      "path": "data/tactical-019.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2965
+    },
+    {
+      "path": "data/tactical-020.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2959
+    },
+    {
+      "path": "data/tactical-021.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2915
+    },
+    {
+      "path": "data/tactical-022.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2939
+    },
+    {
+      "path": "data/tactical-023.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2894
+    },
+    {
+      "path": "data/tactical-024.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2928
+    },
+    {
+      "path": "data/tactical-025.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2792
+    },
+    {
+      "path": "data/tactical-026.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2991
+    },
+    {
+      "path": "data/tactical-027.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2832
+    },
+    {
+      "path": "data/tactical-028.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2793
+    },
+    {
+      "path": "data/tactical-029.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2946
+    },
+    {
+      "path": "data/tactical-030.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2975
+    },
+    {
+      "path": "data/tactical-031.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2926
+    },
+    {
+      "path": "data/tactical-032.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2837
+    },
+    {
+      "path": "data/tactical-033.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2975
+    },
+    {
+      "path": "data/tactical-034.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3016
+    },
+    {
+      "path": "data/tactical-035.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2948
+    },
+    {
+      "path": "data/tactical-036.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 402,
+      "maxRating": 2954
+    },
+    {
+      "path": "data/tactical-037.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3000
+    },
+    {
+      "path": "data/tactical-038.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2931
+    },
+    {
+      "path": "data/tactical-039.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2987
+    },
+    {
+      "path": "data/tactical-040.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2767
+    },
+    {
+      "path": "data/tactical-041.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2915
+    },
+    {
+      "path": "data/tactical-042.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2937
+    },
+    {
+      "path": "data/tactical-043.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2900
+    },
+    {
+      "path": "data/tactical-044.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2940
+    },
+    {
+      "path": "data/tactical-045.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2929
+    },
+    {
+      "path": "data/tactical-046.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3049
+    },
+    {
+      "path": "data/tactical-047.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2936
+    },
+    {
+      "path": "data/tactical-048.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2789
+    },
+    {
+      "path": "data/tactical-049.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2834
+    },
+    {
+      "path": "data/tactical-050.json",
+      "kind": "tactical",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2981
+    },
+    {
+      "path": "data/quiet-001.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2932
+    },
+    {
+      "path": "data/quiet-002.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2891
+    },
+    {
+      "path": "data/quiet-003.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2940
+    },
+    {
+      "path": "data/quiet-004.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3010
+    },
+    {
+      "path": "data/quiet-005.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 419,
+      "maxRating": 2983
+    },
+    {
+      "path": "data/quiet-006.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2876
+    },
+    {
+      "path": "data/quiet-007.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2893
+    },
+    {
+      "path": "data/quiet-008.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2974
+    },
+    {
+      "path": "data/quiet-009.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2867
+    },
+    {
+      "path": "data/quiet-010.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2990
+    },
+    {
+      "path": "data/quiet-011.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3052
+    },
+    {
+      "path": "data/quiet-012.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2930
+    },
+    {
+      "path": "data/quiet-013.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3024
+    },
+    {
+      "path": "data/quiet-014.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2817
+    },
+    {
+      "path": "data/quiet-015.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2888
+    },
+    {
+      "path": "data/quiet-016.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2884
+    },
+    {
+      "path": "data/quiet-017.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2986
+    },
+    {
+      "path": "data/quiet-018.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2889
+    },
+    {
+      "path": "data/quiet-019.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3110
+    },
+    {
+      "path": "data/quiet-020.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2965
+    },
+    {
+      "path": "data/quiet-021.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3037
+    },
+    {
+      "path": "data/quiet-022.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2925
+    },
+    {
+      "path": "data/quiet-023.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2882
+    },
+    {
+      "path": "data/quiet-024.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3178
+    },
+    {
+      "path": "data/quiet-025.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2936
+    },
+    {
+      "path": "data/quiet-026.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2918
+    },
+    {
+      "path": "data/quiet-027.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3001
+    },
+    {
+      "path": "data/quiet-028.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2915
+    },
+    {
+      "path": "data/quiet-029.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2860
+    },
+    {
+      "path": "data/quiet-030.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2980
+    },
+    {
+      "path": "data/quiet-031.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2981
+    },
+    {
+      "path": "data/quiet-032.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2883
+    },
+    {
+      "path": "data/quiet-033.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3169
+    },
+    {
+      "path": "data/quiet-034.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2816
+    },
+    {
+      "path": "data/quiet-035.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3116
+    },
+    {
+      "path": "data/quiet-036.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3011
+    },
+    {
+      "path": "data/quiet-037.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2807
+    },
+    {
+      "path": "data/quiet-038.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2888
+    },
+    {
+      "path": "data/quiet-039.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2868
+    },
+    {
+      "path": "data/quiet-040.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3055
+    },
+    {
+      "path": "data/quiet-041.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2934
+    },
+    {
+      "path": "data/quiet-042.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 2911
+    },
+    {
+      "path": "data/quiet-043.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2795
+    },
+    {
+      "path": "data/quiet-044.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3063
+    },
+    {
+      "path": "data/quiet-045.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3062
+    },
+    {
+      "path": "data/quiet-046.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 399,
+      "maxRating": 3160
+    },
+    {
+      "path": "data/quiet-047.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 3024
+    },
+    {
+      "path": "data/quiet-048.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2981
+    },
+    {
+      "path": "data/quiet-049.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 403,
+      "maxRating": 2971
+    },
+    {
+      "path": "data/quiet-050.json",
+      "kind": "quiet",
+      "count": 1000,
+      "minRating": 400,
+      "maxRating": 2885
+    }
+  ]
 }
