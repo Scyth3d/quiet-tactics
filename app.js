@@ -65,7 +65,9 @@ function revealSolution(){
   if(analysisMode)return;
   const solvedGame=new Chess(current.fen),moves=[],history=[{fen:solvedGame.fen(),san:'Start'}];
   for(const uci of current.solution){const move=uciMove(solvedGame,uci);if(!move)break;moves.push(move.san);history.push({fen:solvedGame.fen(),san:move.san})}
-  answered=true;clearSelection();game=solvedGame;renderBoard();showSolutionFeedback(moves.join(' ')||'No line available');enterAnalysisMode(history);
+  const firstMistake=!puzzleFailed;
+  if(firstMistake){puzzleFailed=true;state.solved++;state.rating=Math.max(400,state.rating-12);ratingDelta=-12;save()}
+  answered=true;clearSelection();game=solvedGame;renderBoard();showSolutionFeedback((moves.join(' ')||'No line available')+(firstMistake?' · Rating −12.':''));enterAnalysisMode(history);
 }
 function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad','solution');if(!ok)$('feedback').classList.add('bad');$('feedbackIcon').textContent=ok?'✓':'×';$('feedbackTitle').textContent=ok?'Correct':'Not quite';$('feedbackText').textContent=text}
 function showSolutionFeedback(text){$('feedback').classList.remove('hidden','bad');$('feedback').classList.add('solution');$('feedbackIcon').textContent='→';$('feedbackTitle').textContent='Solution';$('feedbackText').textContent=text}
