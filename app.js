@@ -77,9 +77,8 @@ function drawEngineArrow(move){
   const files=filesForBoard(),ranks=ranksForBoard(),from=move.slice(0,2),to=move.slice(2,4);
   const x1=files.indexOf(from[0])+.5,y1=ranks.indexOf(from[1])+.5,x2=files.indexOf(to[0])+.5,y2=ranks.indexOf(to[1])+.5;
   if([x1,y1,x2,y2].some(value=>value<0))return;
-  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.id='engineArrow';svg.classList.add('engine-arrow-layer');svg.setAttribute('viewBox','0 0 8 8');
-  svg.innerHTML='<defs><marker id="engineArrowHead" markerWidth="4" markerHeight="4" refX="2.7" refY="2" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L4,2 L0,4 Z" fill="#f6c453"/></marker></defs><line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" marker-end="url(#engineArrowHead)"/>';
-  $('board').append(svg);
+  const dx=x2-x1,dy=y2-y1,distance=Math.hypot(dx,dy),arrow=document.createElement('div');
+  arrow.id='engineArrow';arrow.className='engine-arrow';arrow.style.left=x1/8*100+'%';arrow.style.top=y1/8*100+'%';arrow.style.width=Math.max(.3,distance-.3)/8*100+'%';arrow.style.transform='translateY(-50%) rotate('+Math.atan2(dy,dx)*180/Math.PI+'deg)';$('board').append(arrow);
 }
 function updateAnalysisNavigation(){
   const last=Math.max(0,analysisHistory.length-1),moveLabel=analysisIndex?' · '+analysisHistory[analysisIndex].san:'';$('analysisPly').textContent=analysisIndex+' / '+last+moveLabel;
@@ -112,7 +111,7 @@ function handleEngineMessage(event){
   const line=typeof event.data==='string'?event.data:'';
   if(line==='uciok'){engine.postMessage('setoption name Hash value 32');engine.postMessage('isready');return}
   if(line==='readyok'){engineReadyResolve?.();engineReadyResolve=null;return}
-  const info=parseEngineInfo(line);if(info)engineBestInfo=info;
+  const info=parseEngineInfo(line);if(info){engineBestInfo=info;engineBestMove=line.match(/\bpv\s+([a-h][1-8][a-h][1-8][qrbn]?)/)?.[1]||engineBestMove;showEngineResult()}
   if(line.startsWith('bestmove')){engineBestMove=line.match(/^bestmove\s+([a-h][1-8][a-h][1-8][qrbn]?)/)?.[1]||null;engineSearching=false;if(engineQueuedFen)beginQueuedEngineSearch();else showEngineResult()}
 }
 function initializeEngine(){
@@ -146,7 +145,17 @@ $('mixSlider').addEventListener('input',event=>$('mixValue').textContent=event.t
 $('newPuzzleBtn').addEventListener('click',loadPuzzle);
 $('nextPuzzleBtn').addEventListener('click',loadPuzzle);
 $('showBtn').addEventListener('click',revealSolution);
-$('noTacticBtn').addEventListener('click',()=>{if(answered)return;answered=true;clearSelection();state.solved++;if(isQuiet(current)){state.correct++;state.rating+=12;ratingDelta=12;showFeedback(true,'Correct — there is no forcing tactic. Rating +12.');enterAnalysisMode()}else{state.rating=Math.max(400,state.rating-12);ratingDelta=-12;showFeedback(false,'There is a tactic in this position. Rating −12.')}save()});
+$('noTacticBtn').addEventListener('click',()=>{
+  if(answered)return;clearSelection();
+  if(isQuiet(current)){
+    answered=true;
+    if(!puzzleFailed){state.solved++;state.correct++;state.rating+=12;ratingDelta=12;showFeedback(true,'Correct — there is no forcing tactic. Rating +12.')}else showFeedback(true,'Correct — there is no forcing tactic. Completed after retry.');
+    save();enterAnalysisMode();return;
+  }
+  const firstMistake=!puzzleFailed;
+  if(firstMistake){puzzleFailed=true;state.solved++;state.rating=Math.max(400,state.rating-12);ratingDelta=-12;save()}
+  showFeedback(false,firstMistake?'There is a tactic in this position. Rating −12. You can keep trying.':'There is a tactic in this position. You can keep trying.');
+});
 $('resetBtn').addEventListener('click',resetProgress);
 $('resetRatingBtn').addEventListener('click',resetProgress);
 $('analysisBack').addEventListener('click',()=>navigateAnalysis(-1));
