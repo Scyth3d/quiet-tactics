@@ -63,13 +63,14 @@ function playOpponentReply(){if(answered||solutionIndex>=current.solution.length
 function finishPuzzle(){answered=true;if(!puzzleFailed){state.solved++;state.correct++;state.rating+=12;ratingDelta=12;save();showFeedback(true,'Puzzle complete. Rating +12.')}else showFeedback(true,'Puzzle complete after retry.');enterAnalysisMode()}
 function revealSolution(){
   if(analysisMode)return;
-  const solvedGame=new Chess(current.fen),moves=[];
-  for(const uci of current.solution){const move=uciMove(solvedGame,uci);if(!move)break;moves.push(move.san)}
-  answered=true;clearSelection();game=solvedGame;renderBoard();showFeedback(true,'Solution: '+(moves.join(' ')||'No line available'));enterAnalysisMode();
+  const solvedGame=new Chess(current.fen),moves=[],history=[{fen:solvedGame.fen(),san:'Start'}];
+  for(const uci of current.solution){const move=uciMove(solvedGame,uci);if(!move)break;moves.push(move.san);history.push({fen:solvedGame.fen(),san:move.san})}
+  answered=true;clearSelection();game=solvedGame;renderBoard();showSolutionFeedback(moves.join(' ')||'No line available');enterAnalysisMode(history);
 }
-function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad');if(!ok)$('feedback').classList.add('bad');$('feedbackIcon').textContent=ok?'✓':'×';$('feedbackTitle').textContent=ok?'Correct':'Not quite';$('feedbackText').textContent=text}
+function showFeedback(ok,text){$('feedback').classList.remove('hidden','bad','solution');if(!ok)$('feedback').classList.add('bad');$('feedbackIcon').textContent=ok?'✓':'×';$('feedbackTitle').textContent=ok?'Correct':'Not quite';$('feedbackText').textContent=text}
+function showSolutionFeedback(text){$('feedback').classList.remove('hidden','bad');$('feedback').classList.add('solution');$('feedbackIcon').textContent='→';$('feedbackTitle').textContent='Solution';$('feedbackText').textContent=text}
 function hideFeedback(){$('feedback').classList.add('hidden')}
-function enterAnalysisMode(){analysisMode=true;analysisHistory=[{fen:game.fen(),san:'Solved position'}];analysisIndex=0;$('analysisBar').classList.remove('hidden');$('analysisHint').textContent='Play either side, then use ← and → to review.';updateAnalysisNavigation();updateEngineEvaluation()}
+function enterAnalysisMode(history=null){analysisMode=true;analysisHistory=history||[{fen:game.fen(),san:'Solved position'}];analysisIndex=analysisHistory.length-1;$('analysisBar').classList.remove('hidden');$('analysisHint').textContent='Play either side, then use ← and → to review.';updateAnalysisNavigation();updateEngineEvaluation()}
 function formatEvaluation(info){if(Number.isFinite(info.mate))return(info.mate>0?'White mates in ':'Black mates in ')+Math.abs(info.mate);const value=info.cp/100;return(value>0?'+':'')+value.toFixed(2)+' (White POV)'}
 function clearEngineArrow(){document.getElementById('engineArrow')?.remove()}
 function drawEngineArrow(move){
